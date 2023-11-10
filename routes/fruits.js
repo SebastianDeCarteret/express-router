@@ -19,7 +19,10 @@ router.get("/:id", async (request, response) => {
 
 router.post(
   "/",
-  check("name").notEmpty().not().contains(" "),
+  [
+    check(["name", "color"]).notEmpty().not().contains(" "),
+    check("name").isLength({ min: 5, max: 20 }),
+  ],
   async (request, response) => {
     const errors = validationResult(request);
     if (!errors.isEmpty()) {

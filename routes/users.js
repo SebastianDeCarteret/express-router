@@ -19,7 +19,10 @@ router.get("/:id", async (request, response) => {
 
 router.post(
   "/",
-  check("name").notEmpty().not().contains(" "),
+  [
+    check(["name", "age"]).notEmpty().not().contains(" "),
+    check("name").isLength({ min: 5, max: 15 }),
+  ],
   async (request, response) => {
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
@@ -35,21 +38,33 @@ router.post(
   }
 );
 
-router.put("/:id", async (request, response) => {
-  const user = await User.findByPk(Number(request.params.id));
-  await user.update(request.body);
-  response
-    .status(200)
-    .send(
-      request.body.name && request.body.age != undefined
-        ? `Updated the user that has an id of: ${request.params.id} with name: ${request.body.name} and age: ${request.body.age}`
-        : request.body.name != undefined
-        ? `Updated the user that has an id of: ${request.params.id} with name: ${request.body.name}`
-        : request.body.age != undefined
-        ? `Updated the user that has an id of: ${request.params.id} with age: ${request.body.age}`
-        : "No values provided!"
-    );
-});
+router.put(
+  "/:id",
+  [
+    check(["name", "age"]).notEmpty().not().contains(" "),
+    check("name").isLength({ min: 5, max: 15 }),
+  ],
+  async (request, response) => {
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+      response.json({ error: errors.array() });
+    } else {
+      const user = await User.findByPk(Number(request.params.id));
+      await user.update(request.body);
+      response
+        .status(200)
+        .send(
+          request.body.name && request.body.age != undefined
+            ? `Updated the user that has an id of: ${request.params.id} with name: ${request.body.name} and age: ${request.body.age}`
+            : request.body.name != undefined
+            ? `Updated the user that has an id of: ${request.params.id} with name: ${request.body.name}`
+            : request.body.age != undefined
+            ? `Updated the user that has an id of: ${request.params.id} with age: ${request.body.age}`
+            : "No values provided!"
+        );
+    }
+  }
+);
 
 router.delete("/:id", async (request, response) => {
   const user = await User.findByPk(Number(request.params.id));
